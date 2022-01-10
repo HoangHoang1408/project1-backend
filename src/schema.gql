@@ -1,0 +1,44 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type CustomError {
+  field: String!
+  message: String!
+}
+
+type CoreOutput {
+  ok: Boolean!
+  error: CustomError
+}
+
+type LoginOutput {
+  ok: Boolean!
+  error: CustomError
+  accessToken: String
+}
+
+type SignUpOutput {
+  ok: Boolean!
+  error: CustomError
+}
+
+type Query {
+  login(input: LoginInput!): LoginOutput!
+}
+
+input LoginInput {
+  email: String!
+  password: String!
+}
+
+type Mutation {
+  signup(input: SignUpInput!): SignUpOutput!
+  logout: CoreOutput!
+}
+
+input SignUpInput {
+  email: String!
+  password: String!
+  name: String!
+}
