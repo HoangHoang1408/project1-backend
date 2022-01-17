@@ -12,8 +12,10 @@ import {
   IsUrl,
   ValidateNested,
 } from 'class-validator';
+import * as jwt from 'jsonwebtoken';
 import { CoreEntity } from 'src/common/entities/core.entity';
 import { BeforeInsert, BeforeUpdate, Column, Entity } from 'typeorm';
+import { v4 } from 'uuid';
 
 @InputType('ImageInputType')
 @ObjectType()
@@ -28,7 +30,8 @@ class Image {
 }
 
 export enum UserRole {
-  Common = 'Common',
+  Client = 'Client',
+  
   Admin = 'Admin',
 }
 
@@ -75,9 +78,8 @@ export class User extends CoreEntity {
   @ValidateNested()
   backgroundImage?: Image;
 
-  @Field()
-  @Column({ nullable: true })
-  tokenVersion?: string;
+  @Column('simple-array', { nullable: true })
+  tokenVersions?: string[];
 
   @Field({ nullable: true })
   @Column({ nullable: true })
@@ -97,5 +99,38 @@ export class User extends CoreEntity {
 
   checkPassword(inputPassword: string): Promise<boolean> {
     return bcrypt.compare(inputPassword, this.password);
+  }
+
+  createTokens() {
+    const tokenVersion = v4();
+    return {
+      accessToken: jwt.sign(
+        { userId: this.id },
+        process.env.ACCESS_TOKEN_SECRET,
+        {
+          expiresIn: '15m',
+        },
+      ),
+      refreshToken: jwt.sign(
+        { userId: this.id, tokenVersion },
+        process.env.REFRESH_TOKEN_SECRET,
+        {
+          expiresIn: '30d',
+        },
+      ),
+      tokenVersion,
+    };
+  }
+
+  removeOldTokenVersion(oldTokenVersion: string) {
+    if (!this.tokenVersions) return;
+    this.tokenVersions = this.tokenVersions.filter(
+      (tokenVersion) => tokenVersion !== oldTokenVersion,
+    );
+  }
+
+  addNewTokenVersion(tokenVersion: string) {
+    if (!this.tokenVersions) this.tokenVersions = [];
+    this.tokenVersions.push(tokenVersion);
   }
 }

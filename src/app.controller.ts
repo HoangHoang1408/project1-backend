@@ -1,52 +1,29 @@
-import { Controller, Get, Injectable, Req, Res } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { Controller, Get, Req, Res } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Request, Response } from 'express';
-import * as jwt from 'jsonwebtoken';
 import { Repository } from 'typeorm';
-import { REFRESH_JWT } from './common/constants/common.constants';
-import { bindRefreshTokenToCookie, createTokens } from './common/utilFunc';
+import { AppService } from './app.service';
 import { User } from './user/entities/user.entity';
 
-@Controller()
-@Injectable()
+@Controller('refresh-jwt')
 export class AppController {
   constructor(
     @InjectRepository(User) private readonly userRepo: Repository<User>,
-    private readonly configService: ConfigService,
+    private readonly appService: AppService,
   ) {}
-  @Get('/refresh_token')
+
+  @Get('new-refresh-token')
   async getNewTokens(@Req() req: Request, @Res() res: Response) {
-    try {
-      const refreshToken = req.cookies[REFRESH_JWT];
-      if (!refreshToken) throw new Error('validatefail');
+    return this.appService.getNewTokens(req, res);
+  }
 
-      const decoded = jwt.verify(
-        refreshToken,
-        this.configService.get('REFRESH_TOKEN_SECRET'),
-      );
-      if (!decoded || !decoded['userId'] || !decoded['tokenVersion'])
-        throw new Error('validatefail');
+  @Get('logout')
+  async logout(@Req() req: Request) {
+    return this.appService.logout(req);
+  }
 
-      const user = await this.userRepo.findOne({ id: decoded['userId'] });
-      if (!user || decoded['tokenVersion'] !== user.tokenVersion)
-        throw new Error('validatefail');
-
-      const { accessToken, refreshToken: newRefreshToken } = await createTokens(
-        user,
-        this.userRepo,
-      );
-      bindRefreshTokenToCookie(res, newRefreshToken);
-      console.log('oke');
-      res.status(200).json({
-        ok: true,
-        accessToken,
-      });
-    } catch (error) {
-      res.status(200).json({
-        ok: false,
-        accessToken: '',
-      });
-    }
+  @Get('logout-all')
+  async logoutAllDevice(@Req() req: Request) {
+    return this.appService.logoutAll(req);
   }
 }

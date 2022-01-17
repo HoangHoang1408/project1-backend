@@ -31,10 +31,10 @@ export class AuthResolver {
     return this.authSer.signup(input);
   }
 
-  @Mutation(() => LogoutOutput)
-  logout(@Context() ctx: CustomContext): Promise<LogoutOutput> {
-    return this.authSer.logout(ctx.req);
-  }
+  // @Mutation(() => LogoutOutput)
+  // logout(@Context() ctx: CustomContext): Promise<LogoutOutput> {
+  //   return this.authSer.logout(ctx.req);
+  // }
 
   @Mutation(() => VerifyEmailVerificationOutput)
   verifyEmailVerification(@Args('input') input: VerifyEmailVerificationInput) {

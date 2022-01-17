@@ -13,6 +13,7 @@ import { FirebaseModule } from './firebase/firebase.module';
 import { UploadModule } from './upload/upload.module';
 import { User } from './user/entities/user.entity';
 import { UserModule } from './user/user.module';
+import { RestaurantModule } from './restaurant/restaurant.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -69,6 +70,7 @@ import { UserModule } from './user/user.module';
     UserModule,
     UploadModule,
     EmailModule,
+    RestaurantModule,
   ],
   controllers: [AppController],
   providers: [AppService],

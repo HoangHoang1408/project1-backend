@@ -1,13 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Request, Response } from 'express';
-import * as jwt from 'jsonwebtoken';
-import {
-  bindRefreshTokenToCookie,
-  createTokens,
-  customError,
-} from 'src/common/utilFunc';
+import { Response } from 'express';
+import { bindRefreshTokenToCookie, customError } from 'src/common/utilFunc';
 import { User } from 'src/user/entities/user.entity';
 import { Repository } from 'typeorm';
 import { EmailService } from './../email/email.service';
@@ -17,7 +11,6 @@ import {
   ForgotPasswordOutput,
   LoginInput,
   LoginOutput,
-  LogoutOutput,
   SignUpInput,
   SignUpOutput,
   VerifyEmailVerificationInput,
@@ -34,7 +27,6 @@ export class AuthService {
     @InjectRepository(Verification)
     private readonly verificationRepo: Repository<Verification>,
     private readonly emailService: EmailService,
-    private readonly configService: ConfigService,
   ) {}
 
   async signup({
@@ -85,51 +77,24 @@ export class AuthService {
   ): Promise<LoginOutput> {
     const user = await this.userRepo.findOne(
       { email },
-      { select: ['password', 'id'] },
+      { select: ['password', 'id', 'tokenVersions'] },
     );
     if (!user || !(await user.checkPassword(password)))
       return customError('email', 'Email or Password was wrong!');
-
-    const { accessToken, refreshToken } = await createTokens(
-      user,
-      this.userRepo,
-    );
+    const {
+      accessToken,
+      refreshToken,
+      tokenVersion: newTokenVersion,
+    } = user.createTokens();
+    user.addNewTokenVersion(newTokenVersion);
     bindRefreshTokenToCookie(res, refreshToken);
+    await this.userRepo.save(user, {
+      listeners: false,
+    });
     return {
       ok: true,
-      accessToken: accessToken,
+      accessToken,
     };
-  }
-
-  async logout(req: Request): Promise<LogoutOutput> {
-    try {
-      // get access token
-      const accessToken = req.get('ACCESS_JWT');
-      if (!accessToken) return customError('token', 'Invalid token');
-
-      // check token validation
-      const decoded = jwt.verify(
-        accessToken,
-        this.configService.get('ACCESS_TOKEN_SECRET'),
-      );
-      if (!decoded || !decoded['userId'])
-        return customError('token', 'Invalid token');
-
-      // check token with user
-      const user = await this.userRepo.findOne({ id: decoded['userId'] });
-      if (!user) return customError('token', 'Invalid token');
-      if (!user.tokenVersion) return customError('user', 'Already logged out');
-      await this.userRepo.save({ ...user, tokenVersion: null });
-
-      // valid token
-      return {
-        ok: true,
-      };
-    } catch (error) {
-      if (error instanceof jwt.TokenExpiredError)
-        return customError('token', 'Invalid token');
-      return customError('token', 'Logout fail');
-    }
   }
 
   async forgotPassword({
