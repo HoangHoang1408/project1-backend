@@ -1,8 +1,40 @@
-import { Field, InputType, ObjectType } from '@nestjs/graphql';
+import {
+  Field,
+  InputType,
+  ObjectType,
+  registerEnumType,
+} from '@nestjs/graphql';
 import * as bcrypt from 'bcrypt';
-import { IsEmail, IsPhoneNumber } from 'class-validator';
+import {
+  IsEmail,
+  IsPhoneNumber,
+  IsString,
+  IsUrl,
+  ValidateNested,
+} from 'class-validator';
 import { CoreEntity } from 'src/common/entities/core.entity';
 import { BeforeInsert, BeforeUpdate, Column, Entity } from 'typeorm';
+
+@InputType('ImageInputType')
+@ObjectType()
+class Image {
+  @Field()
+  @IsString()
+  imagePath: string;
+
+  @Field()
+  @IsUrl()
+  imageUrl: string;
+}
+
+export enum UserRole {
+  Common = 'Common',
+  Admin = 'Admin',
+}
+
+registerEnumType(UserRole, {
+  name: 'UserRole',
+});
 
 @InputType({ isAbstract: true })
 @ObjectType()
@@ -14,15 +46,38 @@ export class User extends CoreEntity {
   email: string;
 
   @Field()
-  @Column({ select: false })
-  password: string;
+  @Column({ default: false })
+  verified: boolean;
 
-  @Column({ nullable: true })
-  tokenVersion?: string;
+  @Field()
+  @Column({ select: false })
+  @IsString()
+  password: string;
 
   @Field()
   @Column()
+  @IsString()
   name: string;
+
+  @Field(() => UserRole)
+  @Column('enum', {
+    enum: UserRole,
+  })
+  role: UserRole;
+
+  @Field(() => Image, { nullable: true })
+  @Column('json', { nullable: true })
+  @ValidateNested()
+  avatarImage?: Image;
+
+  @Field(() => Image, { nullable: true })
+  @Column('json', { nullable: true })
+  @ValidateNested()
+  backgroundImage?: Image;
+
+  @Field()
+  @Column({ nullable: true })
+  tokenVersion?: string;
 
   @Field({ nullable: true })
   @Column({ nullable: true })

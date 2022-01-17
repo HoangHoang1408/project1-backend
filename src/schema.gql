@@ -2,12 +2,43 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type Image {
+  imagePath: String!
+  imageUrl: String!
+}
+
+type User {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  email: String!
+  verified: Boolean!
+  password: String!
+  name: String!
+  role: UserRole!
+  avatarImage: Image
+  backgroundImage: Image
+  tokenVersion: String!
+  address: String
+  phoneNumber: String
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+enum UserRole {
+  Common
+  Admin
+}
+
 type CustomError {
   field: String!
   message: String!
 }
 
-type CoreOutput {
+type ForgotPasswordOutput {
   ok: Boolean!
   error: CustomError
 }
@@ -18,13 +49,45 @@ type LoginOutput {
   accessToken: String
 }
 
+type LogoutOutput {
+  ok: Boolean!
+  error: CustomError
+}
+
 type SignUpOutput {
   ok: Boolean!
   error: CustomError
 }
 
+type VerifyEmailVerificationOutput {
+  ok: Boolean!
+  error: CustomError
+}
+
+type VerifyForgotPasswordOutput {
+  ok: Boolean!
+  error: CustomError
+}
+
+type MeOutPut {
+  ok: Boolean!
+  error: CustomError
+  user: User
+}
+
+type UpdateUserOutput {
+  ok: Boolean!
+  error: CustomError
+}
+
+input ImageInputType {
+  imagePath: String!
+  imageUrl: String!
+}
+
 type Query {
   login(input: LoginInput!): LoginOutput!
+  me: MeOutPut!
 }
 
 input LoginInput {
@@ -34,11 +97,37 @@ input LoginInput {
 
 type Mutation {
   signup(input: SignUpInput!): SignUpOutput!
-  logout: CoreOutput!
+  logout: LogoutOutput!
+  verifyEmailVerification(input: VerifyEmailVerificationInput!): VerifyEmailVerificationOutput!
+  forgotPassword(input: ForgotPasswordInput!): ForgotPasswordOutput!
+  verifyForgotPassword(input: VerifyForgotPasswordInput!): VerifyForgotPasswordOutput!
+  updateUser(input: UpdateUserInput!): UpdateUserOutput!
 }
 
 input SignUpInput {
   email: String!
   password: String!
   name: String!
+  role: UserRole!
+}
+
+input VerifyEmailVerificationInput {
+  publicCode: String!
+}
+
+input ForgotPasswordInput {
+  email: String!
+}
+
+input VerifyForgotPasswordInput {
+  publicCode: String!
+  newPassword: String!
+}
+
+input UpdateUserInput {
+  password: String
+  avatarImage: ImageInputType
+  backgroundImage: ImageInputType
+  address: String
+  phoneNumber: String
 }

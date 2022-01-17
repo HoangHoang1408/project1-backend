@@ -1,14 +1,11 @@
 import { Controller, Get, Injectable, Req, Res } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Request, Response } from 'express';
 import * as jwt from 'jsonwebtoken';
 import { Repository } from 'typeorm';
-import {
-  bindRefreshTokenToCookie,
-  createTokens,
-  JWT_REFRESH,
-  refreshTokenSecret,
-} from './common/utilFunc/util';
+import { REFRESH_JWT } from './common/constants/common.constants';
+import { bindRefreshTokenToCookie, createTokens } from './common/utilFunc';
 import { User } from './user/entities/user.entity';
 
 @Controller()
@@ -16,14 +13,18 @@ import { User } from './user/entities/user.entity';
 export class AppController {
   constructor(
     @InjectRepository(User) private readonly userRepo: Repository<User>,
+    private readonly configService: ConfigService,
   ) {}
   @Get('/refresh_token')
   async getNewTokens(@Req() req: Request, @Res() res: Response) {
     try {
-      const refreshToken = req.cookies[JWT_REFRESH];
+      const refreshToken = req.cookies[REFRESH_JWT];
       if (!refreshToken) throw new Error('validatefail');
 
-      const decoded = jwt.verify(refreshToken, refreshTokenSecret);
+      const decoded = jwt.verify(
+        refreshToken,
+        this.configService.get('REFRESH_TOKEN_SECRET'),
+      );
       if (!decoded || !decoded['userId'] || !decoded['tokenVersion'])
         throw new Error('validatefail');
 
@@ -42,7 +43,6 @@ export class AppController {
         accessToken,
       });
     } catch (error) {
-      console.log(error.message);
       res.status(200).json({
         ok: false,
         accessToken: '',
