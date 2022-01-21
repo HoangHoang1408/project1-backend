@@ -26,4 +26,6 @@ export class AppController {
   async logoutAllDevice(@Req() req: Request) {
     return this.appService.logoutAll(req);
   }
+  
+  
 }

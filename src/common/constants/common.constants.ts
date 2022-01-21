@@ -5,7 +5,7 @@ export interface CustomContext {
   req: Request;
 }
 
+export const PUB_SUB = 'PUB_SUB';
 export const REFRESH_JWT = 'REFRESH_JWT';
 export const ACCESS_JWT = 'ACCESS_JWT';
-
 export const CONFIG_OPTIONS = 'CONFIG_OPTIONS';

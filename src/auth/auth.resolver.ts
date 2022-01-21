@@ -1,4 +1,4 @@
-import { Args, Context, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Args, Context, Mutation, Resolver } from '@nestjs/graphql';
 import { CustomContext } from './../common/constants/common.constants';
 import { AuthService } from './auth.service';
 import {
@@ -6,7 +6,6 @@ import {
   ForgotPasswordOutput,
   LoginInput,
   LoginOutput,
-  LogoutOutput,
   SignUpInput,
   SignUpOutput,
   VerifyEmailVerificationInput,
@@ -18,7 +17,7 @@ import {
 @Resolver()
 export class AuthResolver {
   constructor(private readonly authSer: AuthService) {}
-  @Query(() => LoginOutput)
+  @Mutation(() => LoginOutput)
   login(
     @Args('input') input: LoginInput,
     @Context() ctx: CustomContext,
@@ -30,11 +29,6 @@ export class AuthResolver {
   signup(@Args('input') input: SignUpInput): Promise<SignUpOutput> {
     return this.authSer.signup(input);
   }
-
-  // @Mutation(() => LogoutOutput)
-  // logout(@Context() ctx: CustomContext): Promise<LogoutOutput> {
-  //   return this.authSer.logout(ctx.req);
-  // }
 
   @Mutation(() => VerifyEmailVerificationOutput)
   verifyEmailVerification(@Args('input') input: VerifyEmailVerificationInput) {

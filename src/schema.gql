@@ -7,6 +7,127 @@ type Image {
   imageUrl: String!
 }
 
+type Option {
+  optionName: String!
+  extraPrice: Float!
+}
+
+type DishOption {
+  typeName: String!
+  options: [Option!]!
+}
+
+type ChoosenOption {
+  typeName: String!
+  optionName: String!
+}
+
+type DishComment {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  text: String!
+  user: User!
+  dish: Dish!
+  rating: Float!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type RestaurantCategory {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  name: String!
+  coverImage: Image
+  slug: String!
+  restaurants: [Restaurant!]!
+}
+
+type Restaurant {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  restaurantName: String!
+  address: String!
+  backgroundImage: Image
+  openTime: DateTime
+  closeTime: DateTime
+  isPromoted: Boolean
+  promoteUtil: DateTime
+  rating: Float
+  owner: User
+  dishGroups: [DishGroup!]
+  categories: [RestaurantCategory!]
+  orders: [Order!]
+}
+
+type DishGroup {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  dishGroupName: String!
+  restaurant: Restaurant!
+  dishes: [Dish!]
+}
+
+type Dish {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  name: String!
+  dishImage: Image
+  price: Float!
+  averageRating: Float
+  description: String!
+  discount: Float
+  dishOptions: [DishOption!]
+  restaurant: Restaurant!
+  dishGroup: DishGroup!
+  comments: [DishComment!]
+}
+
+type Order {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deliveryAddress: String!
+  addressDetail: String!
+  deliveryNote: String!
+  deliveryTime: DateTime!
+  totalPrice: Float!
+  orderStatus: OrderStatus!
+  restaurant: Restaurant
+  customer: User
+  driver: User
+  orderItems: [OrderItem!]!
+}
+
+enum OrderStatus {
+  PendingOrder
+  RestaurantCooking
+  RestaurantReject
+  RestaurantCooked
+  DriverDelivering
+  DriverDelivered
+  DriverAbort
+  CustomerReject
+}
+
+type OrderItem {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  dish: Dish!
+  extraRequirement: String!
+  quantity: Float!
+  choosenOptions: [ChoosenOption!]!
+  order: Order!
+}
+
 type User {
   id: ID!
   createdAt: DateTime!
@@ -20,15 +141,15 @@ type User {
   backgroundImage: Image
   address: String
   phoneNumber: String
+  restaurants: [Restaurant!]
+  orders: [Order!]
+  rides: [Order!]
 }
 
-"""
-A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
-"""
-scalar DateTime
-
 enum UserRole {
-  Client
+  Customer
+  Owner
+  Driver
   Admin
 }
 
@@ -63,6 +184,107 @@ type VerifyForgotPasswordOutput {
   error: CustomError
 }
 
+type AddDishToDishGroupOutput {
+  ok: Boolean!
+  error: CustomError
+}
+
+type GetDishOutput {
+  ok: Boolean!
+  error: CustomError
+  dish: Dish
+}
+
+type DeleteDishOutput {
+  ok: Boolean!
+  error: CustomError
+}
+
+type UpdateDishOutput {
+  ok: Boolean!
+  error: CustomError
+}
+
+type AddDishCommentOutput {
+  ok: Boolean!
+  error: CustomError
+}
+
+type UpdateDishCommentOutput {
+  ok: Boolean!
+  error: CustomError
+}
+
+type CreateDishGroupOutput {
+  ok: Boolean!
+  error: CustomError
+}
+
+type DeleteDishGroupOutput {
+  ok: Boolean!
+  error: CustomError
+}
+
+type CreateOrderOutput {
+  ok: Boolean!
+  error: CustomError
+}
+
+type UpdateOrderStatusOutput {
+  ok: Boolean!
+  error: CustomError
+}
+
+type GetOrdersOuput {
+  ok: Boolean!
+  error: CustomError
+  orders: [Order!]
+}
+
+type GetOrderOuput {
+  ok: Boolean!
+  error: CustomError
+  order: Order
+}
+
+type GetRestaurantOutput {
+  ok: Boolean!
+  error: CustomError
+  restaurant: Restaurant
+}
+
+type SearchRestaurantByNameOutput {
+  ok: Boolean!
+  error: CustomError
+  totalPages: Int
+  totalResults: Int
+  restaurants: [Restaurant!]
+}
+
+type SearchRestaurantByCategoryOutput {
+  ok: Boolean!
+  error: CustomError
+  totalPages: Int
+  totalResults: Int
+  restaurants: [Restaurant!]
+  suggestedCategories: [RestaurantCategory!]
+}
+
+type CreateRestaurantOutput {
+  ok: Boolean!
+  error: CustomError
+}
+
+type UpdateRestaurantOutput {
+  ok: Boolean!
+  error: CustomError
+}
+
+type DeleteRestaurantOutput {
+  ok: Boolean!
+  error: CustomError
+}
+
 type MeOutPut {
   ok: Boolean!
   error: CustomError
@@ -79,22 +301,76 @@ input ImageInputType {
   imageUrl: String!
 }
 
-type Query {
-  login(input: LoginInput!): LoginOutput!
-  me: MeOutPut!
+input OptionInputType {
+  optionName: String!
+  extraPrice: Float!
 }
 
-input LoginInput {
-  email: String!
-  password: String!
+input DishOptionInputType {
+  typeName: String!
+  options: [OptionInputType!]!
+}
+
+input ChoosenOptionInputType {
+  typeName: String!
+  optionName: String!
+}
+
+type Query {
+  me: MeOutPut!
+  getRestaurant(input: GetRestaurantInput!): GetRestaurantOutput!
+  searchRestaurantByCategory(input: SearchRestaurantByCategoryInput!): SearchRestaurantByCategoryOutput!
+  searchRestaurantByName(input: SearchRestaurantByNameInput!): SearchRestaurantByNameOutput!
+  getDishDetail(input: GetDishInput!): GetDishOutput!
+}
+
+input GetRestaurantInput {
+  restaurantId: Float!
+}
+
+input SearchRestaurantByCategoryInput {
+  page: Int = 1
+  resultsPerPage: Int = 10
+  categorySearchTerm: String
+}
+
+input SearchRestaurantByNameInput {
+  page: Int = 1
+  resultsPerPage: Int = 10
+  nameSearchTerm: String
+}
+
+input GetDishInput {
+  dishId: ID!
 }
 
 type Mutation {
+  login(input: LoginInput!): LoginOutput!
   signup(input: SignUpInput!): SignUpOutput!
   verifyEmailVerification(input: VerifyEmailVerificationInput!): VerifyEmailVerificationOutput!
   forgotPassword(input: ForgotPasswordInput!): ForgotPasswordOutput!
   verifyForgotPassword(input: VerifyForgotPasswordInput!): VerifyForgotPasswordOutput!
   updateUser(input: UpdateUserInput!): UpdateUserOutput!
+  createRestaurant(input: CreateRestaurantInput!): CreateRestaurantOutput!
+  updateRestaurant(input: UpdateRestaurantInput!): UpdateRestaurantOutput!
+  deleteRestaurant(input: DeleteRestaurantInput!): DeleteRestaurantOutput!
+  createDishGroup(input: CreateDishGroupInput!): CreateDishGroupOutput!
+  deleteDishGroup(input: DeleteDishGroupInput!): DeleteDishGroupOutput!
+  addDishToDishGroup(input: AddDishToDishGroupInput!): AddDishToDishGroupOutput!
+  deleteDish(input: DeleteDishInput!): DeleteDishOutput!
+  updateDish(input: UpdateDishInput!): UpdateDishOutput!
+  createOrder(input: CreateOrderInput!): CreateOrderOutput!
+  getOrders(input: GetOrdersInput!): GetOrdersOuput!
+  getOrder(input: GetOrderInput!): GetOrderOuput!
+  updateOrderStatus(input: UpdateOrderStatusInput!): UpdateOrderStatusOutput!
+  registerDriver(input: RegisterDriverInput!): UpdateOrderStatusOutput!
+  addDishComment(input: AddDishCommentInput!): AddDishCommentOutput!
+  updateDishComment(input: UpdateDishCommentInput!): UpdateDishCommentOutput!
+}
+
+input LoginInput {
+  email: String!
+  password: String!
 }
 
 input SignUpInput {
@@ -123,4 +399,110 @@ input UpdateUserInput {
   backgroundImage: ImageInputType
   address: String
   phoneNumber: String
+}
+
+input CreateRestaurantInput {
+  restaurantName: String!
+  address: String!
+  backgroundImage: ImageInputType
+  openTime: DateTime
+  closeTime: DateTime
+  categoryNames: [String!]
+}
+
+input UpdateRestaurantInput {
+  restaurantName: String
+  address: String
+  backgroundImage: ImageInputType
+  openTime: DateTime
+  closeTime: DateTime
+  categoryNames: [String!]
+  restaurantId: ID!
+}
+
+input DeleteRestaurantInput {
+  restaurantId: ID!
+}
+
+input CreateDishGroupInput {
+  dishGroupName: String!
+  restaurantId: ID!
+}
+
+input DeleteDishGroupInput {
+  dishGroupId: ID!
+}
+
+input AddDishToDishGroupInput {
+  name: String!
+  dishImage: ImageInputType
+  price: Float!
+  description: String!
+  discount: Float
+  dishOptions: [DishOptionInputType!]
+  dishGroupId: ID!
+}
+
+input DeleteDishInput {
+  dishId: ID!
+}
+
+input UpdateDishInput {
+  name: String
+  dishImage: ImageInputType
+  price: Float
+  description: String
+  discount: Float
+  dishOptions: [DishOptionInputType!]
+  dishId: ID!
+}
+
+input CreateOrderInput {
+  deliveryAddress: String!
+  addressDetail: String!
+  deliveryNote: String!
+  deliveryTime: DateTime!
+  orderItemsInput: [CreateOrderItemInput!]!
+  restaurantId: ID!
+}
+
+input CreateOrderItemInput {
+  extraRequirement: String!
+  quantity: Float!
+  choosenOptions: [ChoosenOptionInputType!]!
+  dishId: ID!
+}
+
+input GetOrdersInput {
+  orderStatus: OrderStatus
+}
+
+input GetOrderInput {
+  orderId: Float!
+}
+
+input UpdateOrderStatusInput {
+  orderStatus: OrderStatus!
+  orderId: Float!
+}
+
+input RegisterDriverInput {
+  orderId: Float!
+}
+
+input AddDishCommentInput {
+  text: String!
+  rating: Float!
+  orderItemId: ID!
+}
+
+input UpdateDishCommentInput {
+  text: String
+  rating: Float
+  dishCommentId: ID!
+}
+
+type Subscription {
+  newPendingOrder: Order!
+  newCookedOrder: Order!
 }

@@ -1,1 +1,16 @@
-1) Delete image when it doesn't bind to any other enitty
+TODO: Delete image when it doesn't bind to any other enitty
+TODO: Check dish -> comments cascade 
+
+
+owner: owner@gmail.com
+atoken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjE5LCJpYXQiOjE2NDI1ODgxODEsImV4cCI6MTY0MjY3NDU4MX0.Er_ipzURJ7ZM9cs9QxE7lTA_ZRStR9DbR_qJNL6qVs4
+
+driver: driver@gmail.com
+atoken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIwLCJpYXQiOjE2NDI1ODg5MDIsImV4cCI6MTY0MjY3NTMwMn0.WlJVPyRiAXBPq4A559v5nMT_jU2TNqenIlPc3qFgxnM
+
+client: client@gmail.com
+atoken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIxLCJpYXQiOjE2NDI2NDczMzksImV4cCI6MTY0MjczMzczOX0.MUCMy0bBj7TzSbXYEQrYseUgeFnPcViOQnyZgiE5VaI
+
+
+
+pass: hoang1482002

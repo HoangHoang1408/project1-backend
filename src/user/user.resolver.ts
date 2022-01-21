@@ -1,5 +1,5 @@
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { Role } from 'src/auth/role.decorator';
+import { Roles } from 'src/auth/role.decorator';
 import { CurrentUser } from './../auth/user.decorator';
 import { MeOutPut, UpdateUserInput, UpdateUserOutput } from './dto';
 import { User } from './entities/user.entity';
@@ -9,7 +9,7 @@ import { UserService } from './user.service';
 export class UserResolver {
   constructor(private readonly userService: UserService) {}
 
-  @Role(['Any'])
+  @Roles(['Any'])
   @Query(() => MeOutPut)
   me(@CurrentUser() user: User) {
     return {
@@ -18,7 +18,7 @@ export class UserResolver {
     };
   }
 
-  @Role(['Any'])
+  @Roles(['Any'])
   @Mutation(() => UpdateUserOutput)
   updateUser(@CurrentUser() user: User, @Args('input') input: UpdateUserInput) {
     return this.userService.updateUser(user, input);

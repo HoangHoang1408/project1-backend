@@ -1,4 +1,5 @@
-import { Field, ObjectType } from '@nestjs/graphql';
+import { Field, InputType, Int, ObjectType } from '@nestjs/graphql';
+import { IsInt } from 'class-validator';
 
 @ObjectType()
 class CustomError {
@@ -16,4 +17,24 @@ export class CoreOutput {
 
   @Field(() => CustomError, { nullable: true })
   error?: CustomError;
+}
+
+@InputType()
+export class PaginationInput {
+  @Field(() => Int, { defaultValue: 1 })
+  @IsInt()
+  page: number;
+
+  @Field(() => Int, { defaultValue: 10 })
+  @IsInt()
+  resultsPerPage: number;
+}
+
+@ObjectType()
+export class PaginationOutput extends CoreOutput {
+  @Field(() => Int, { nullable: true })
+  totalPages?: number;
+
+  @Field(() => Int, { nullable: true })
+  totalResults?: number;
 }

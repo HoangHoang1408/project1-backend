@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
+import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import * as Joi from 'joi';
 import { join } from 'path';
@@ -10,10 +11,10 @@ import { AuthModule } from './auth/auth.module';
 import { ACCESS_JWT } from './common/constants/common.constants';
 import { EmailModule } from './email/email.module';
 import { FirebaseModule } from './firebase/firebase.module';
+import { RestaurantModule } from './restaurant/restaurant.module';
 import { UploadModule } from './upload/upload.module';
 import { User } from './user/entities/user.entity';
 import { UserModule } from './user/user.module';
-import { RestaurantModule } from './restaurant/restaurant.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -22,6 +23,8 @@ import { RestaurantModule } from './restaurant/restaurant.module';
       validationSchema: Joi.object({
         ACCESS_TOKEN_SECRET: Joi.string().required(),
         REFRESH_TOKEN_SECRET: Joi.string().required(),
+        ACCESS_TOKEN_EXPIRES_IN: Joi.string().required(),
+        REFRESH_TOKEN_EXPIRES_IN: Joi.string().required(),
         FIREBASE_APIKEY: Joi.string().required(),
         FIREBASE_AUTHDOMAIN: Joi.string().required(),
         FIREBASE_SOTRAGEBUCKET: Joi.string().required(),
@@ -35,6 +38,7 @@ import { RestaurantModule } from './restaurant/restaurant.module';
         DATABASE_LOGGING: Joi.string().required(),
       }),
     }),
+    ScheduleModule.forRoot(),
     FirebaseModule.forRoot({
       apiKey: process.env.FIREBASE_APIKEY,
       storageBucket: process.env.FIREBASE_SOTRAGEBUCKET,
@@ -57,10 +61,18 @@ import { RestaurantModule } from './restaurant/restaurant.module';
       synchronize: process.env.DATABASE_SYNCHRONIZE === 'true' ? true : false,
       logging: process.env.DATABASE_LOGGING === 'true' ? true : false,
       autoLoadEntities: true,
-      entities: [User],
     }),
     GraphQLModule.forRoot({
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
+      subscriptions: {
+        'subscriptions-transport-ws': {
+          path: '/graphql',
+          onConnect(params) {
+            console.log(params);
+            return { [ACCESS_JWT]: params[ACCESS_JWT] };
+          },
+        },
+      },
       context: ({ req, res }) => {
         return { req, res, [ACCESS_JWT]: req.get(ACCESS_JWT) };
       },
