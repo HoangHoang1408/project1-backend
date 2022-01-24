@@ -63,6 +63,7 @@ type Restaurant {
   dishGroups: [DishGroup!]
   categories: [RestaurantCategory!]
   orders: [Order!]
+  totalOrders: Float
 }
 
 type DishGroup {
@@ -167,6 +168,7 @@ type LoginOutput {
   ok: Boolean!
   error: CustomError
   accessToken: String
+  user: User
 }
 
 type SignUpOutput {
@@ -247,6 +249,12 @@ type GetOrderOuput {
   order: Order
 }
 
+type TopRestaurantsOutput {
+  ok: Boolean!
+  error: CustomError
+  restaurants: [Restaurant!]
+}
+
 type GetRestaurantOutput {
   ok: Boolean!
   error: CustomError
@@ -318,6 +326,7 @@ input ChoosenOptionInputType {
 
 type Query {
   me: MeOutPut!
+  topRestaurants: TopRestaurantsOutput!
   getRestaurant(input: GetRestaurantInput!): GetRestaurantOutput!
   searchRestaurantByCategory(input: SearchRestaurantByCategoryInput!): SearchRestaurantByCategoryOutput!
   searchRestaurantByName(input: SearchRestaurantByNameInput!): SearchRestaurantByNameOutput!
@@ -331,13 +340,13 @@ input GetRestaurantInput {
 input SearchRestaurantByCategoryInput {
   page: Int = 1
   resultsPerPage: Int = 10
-  categorySearchTerm: String
+  categorySearchTerm: String!
 }
 
 input SearchRestaurantByNameInput {
   page: Int = 1
   resultsPerPage: Int = 10
-  nameSearchTerm: String
+  nameSearchTerm: String!
 }
 
 input GetDishInput {

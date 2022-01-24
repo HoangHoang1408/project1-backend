@@ -14,6 +14,12 @@ import {
 import { Restaurant } from '../entities/restaurant.entity';
 import { RestaurantCategory } from './../entities/restaurantCategory.entity';
 
+@ObjectType()
+export class TopRestaurantsOutput extends CoreOutput {
+  @Field(() => [Restaurant], { nullable: true })
+  restaurants?: Restaurant[];
+}
+
 @InputType()
 export class GetRestaurantInput {
   @Field()
@@ -27,13 +33,13 @@ export class GetRestaurantOutput extends CoreOutput {
 
 @InputType()
 export class SearchRestaurantByCategoryInput extends PaginationInput {
-  @Field({ nullable: true })
-  categorySearchTerm?: string;
+  @Field()
+  categorySearchTerm: string;
 }
 @InputType()
 export class SearchRestaurantByNameInput extends PaginationInput {
-  @Field({ nullable: true })
-  nameSearchTerm?: string;
+  @Field()
+  nameSearchTerm: string;
 }
 
 @ObjectType()

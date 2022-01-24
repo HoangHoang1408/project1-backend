@@ -42,6 +42,7 @@ import {
   SearchRestaurantByCategoryOutput,
   SearchRestaurantByNameInput,
   SearchRestaurantByNameOutput,
+  TopRestaurantsOutput,
   UpdateRestaurantInput,
   UpdateRestaurantOutput,
 } from './restaurant.dto';
@@ -85,4 +86,5 @@ export {
   SearchRestaurantByCategoryOutput,
   GetRestaurantInput,
   GetRestaurantOutput,
+  TopRestaurantsOutput,
 };

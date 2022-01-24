@@ -2,6 +2,7 @@ import { Field, InputType, ObjectType } from '@nestjs/graphql';
 import { Image } from 'src/common/dto/objectType';
 import { CoreEntity } from 'src/common/entities/core.entity';
 import {
+  BeforeInsert,
   Column,
   Entity,
   ManyToMany,
@@ -80,6 +81,15 @@ export class Restaurant extends CoreEntity {
     nullable: true,
   })
   orders?: Order[];
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  totalOrders?: number;
+
+  @BeforeInsert()
+  calculateTotalOrders() {
+    if (this.orders) this.totalOrders = this.orders.length;
+  }
 
   calculateRatings() {
     if (!(this.dishGroups && this.dishGroups.length > 0)) return;

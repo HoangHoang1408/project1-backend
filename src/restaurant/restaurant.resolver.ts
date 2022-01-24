@@ -41,6 +41,7 @@ import {
   SearchRestaurantByCategoryOutput,
   SearchRestaurantByNameInput,
   SearchRestaurantByNameOutput,
+  TopRestaurantsOutput,
   UpdateDishCommentInput,
   UpdateDishCommentOutput,
   UpdateDishInput,
@@ -61,6 +62,10 @@ export class RestaurantResolver {
     private readonly restaurantService: RestaurantService,
     @Inject(PUB_SUB) private readonly pubsub: PubSub,
   ) {}
+  @Query(() => TopRestaurantsOutput)
+  topRestaurants() {
+    return this.restaurantService.topRestaurant();
+  }
 
   @Query(() => GetRestaurantOutput)
   getRestaurant(

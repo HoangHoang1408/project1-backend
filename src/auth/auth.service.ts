@@ -77,7 +77,21 @@ export class AuthService {
   ): Promise<LoginOutput> {
     const user = await this.userRepo.findOne(
       { email },
-      { select: ['password', 'id', 'tokenVersions'] },
+      {
+        select: [
+          'id',
+          'address',
+          'email',
+          'phoneNumber',
+          'verified',
+          'name',
+          'role',
+          'avatarImage',
+          'backgroundImage',
+          'password',
+          'tokenVersions',
+        ],
+      },
     );
     if (!user || !(await user.checkPassword(password)))
       return customError('email', 'Email or Password was wrong!');
@@ -91,9 +105,12 @@ export class AuthService {
     await this.userRepo.save(user, {
       listeners: false,
     });
+    delete user.password;
+    delete user.tokenVersions;
     return {
       ok: true,
       accessToken,
+      user,
     };
   }
 

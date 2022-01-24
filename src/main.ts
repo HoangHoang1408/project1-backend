@@ -6,9 +6,15 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     logger: false,
+    cors: {
+      origin: process.env.CLIENT_DOMAIN,
+      credentials: true,
+    },
   });
   app.use(cookieParser());
   app.useGlobalPipes(new ValidationPipe());
-  await app.listen(3000);
+  await app.listen(4000);
 }
-bootstrap();
+bootstrap().then(() => {
+  console.log('Server listening from port 4000');
+});

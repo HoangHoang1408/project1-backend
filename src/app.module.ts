@@ -63,6 +63,10 @@ import { UserModule } from './user/user.module';
       autoLoadEntities: true,
     }),
     GraphQLModule.forRoot({
+      cors: {
+        origin: process.env.CLIENT_DOMAIN,
+        credentials: true,
+      },
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
       subscriptions: {
         'subscriptions-transport-ws': {

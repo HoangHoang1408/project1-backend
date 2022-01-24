@@ -9,4 +9,7 @@ export class LoginInput extends PickType(User, ['email', 'password']) {}
 export class LoginOutput extends CoreOutput {
   @Field({ nullable: true })
   accessToken?: string;
+
+  @Field({ nullable: true })
+  user?: User;
 }

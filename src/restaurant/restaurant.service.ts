@@ -45,6 +45,7 @@ import {
   SearchRestaurantByCategoryOutput,
   SearchRestaurantByNameInput,
   SearchRestaurantByNameOutput,
+  TopRestaurantsOutput,
   UpdateDishCommentInput,
   UpdateDishCommentOutput,
   UpdateDishInput,
@@ -83,6 +84,20 @@ export class RestaurantService {
   ) {}
 
   // restaurant
+  async topRestaurant(): Promise<TopRestaurantsOutput> {
+    const restaurants = await this.restaurantRepo.find({
+      take: 10,
+      order: {
+        rating: 'DESC',
+        totalOrders: 'DESC',
+        isPromoted: 'DESC',
+      },
+    });
+    return {
+      ok: true,
+      restaurants,
+    };
+  }
 
   async getRestaurant(input: GetRestaurantInput): Promise<GetRestaurantOutput> {
     const restaurant = await this.restaurantRepo.findOne(
