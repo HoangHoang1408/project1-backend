@@ -2,7 +2,14 @@ import { Field, InputType, ObjectType } from '@nestjs/graphql';
 import { Length, ValidateNested } from 'class-validator';
 import { Image } from 'src/common/dto/objectType';
 import { CoreEntity } from 'src/common/entities/core.entity';
-import { Column, Entity, JoinTable, ManyToMany } from 'typeorm';
+import {
+  AfterLoad,
+  BeforeInsert,
+  Column,
+  Entity,
+  JoinTable,
+  ManyToMany,
+} from 'typeorm';
 import { Restaurant } from './restaurant.entity';
 
 @InputType('RestaurantCategoryInputType', { isAbstract: true })
@@ -27,4 +34,15 @@ export class RestaurantCategory extends CoreEntity {
   @ManyToMany(() => Restaurant, (res) => res.categories)
   @JoinTable()
   restaurants: Restaurant[];
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  totalRestaurants?: number;
+
+  @BeforeInsert()
+  @AfterLoad()
+  calTotalRestaurants() {
+    if (this.restaurants && this.restaurants.length > 0)
+      this.totalRestaurants = this.restaurants.length;
+  }
 }

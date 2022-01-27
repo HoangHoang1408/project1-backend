@@ -45,6 +45,7 @@ type RestaurantCategory {
   coverImage: Image
   slug: String!
   restaurants: [Restaurant!]!
+  totalRestaurants: Float
 }
 
 type Restaurant {
@@ -184,6 +185,12 @@ type VerifyEmailVerificationOutput {
 type VerifyForgotPasswordOutput {
   ok: Boolean!
   error: CustomError
+}
+
+type TopCategoriesOutput {
+  ok: Boolean!
+  error: CustomError
+  restaurantCategories: [RestaurantCategory!]
 }
 
 type AddDishToDishGroupOutput {
@@ -331,6 +338,7 @@ type Query {
   searchRestaurantByCategory(input: SearchRestaurantByCategoryInput!): SearchRestaurantByCategoryOutput!
   searchRestaurantByName(input: SearchRestaurantByNameInput!): SearchRestaurantByNameOutput!
   getDishDetail(input: GetDishInput!): GetDishOutput!
+  topRestaurantCategories: TopCategoriesOutput!
 }
 
 input GetRestaurantInput {

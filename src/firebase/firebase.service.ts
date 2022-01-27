@@ -11,7 +11,9 @@ import {
   getStorage,
   ref,
   uploadBytes,
+  UploadMetadata,
 } from 'firebase/storage';
+import * as sharp from 'sharp';
 import { v1 } from 'uuid';
 import { CONFIG_OPTIONS } from './../common/constants/common.constants';
 import { FirebaseOption } from './interface/configOption.interface';
@@ -26,9 +28,17 @@ export class FirebaseService {
   }
   async uploadFile(file: Express.Multer.File, storagePath: string) {
     try {
-      const storageName = `${v1()}.${file.mimetype.split('/')[1]}`;
+      const storageName = `${v1()}.webp`;
+      const metatdata: UploadMetadata = {
+        contentType: 'image/webp',
+      };
+      const buffer = await sharp(file.buffer)
+        .webp({
+          quality: 50,
+        })
+        .toBuffer();
       const storageRef = ref(this.storage, `${storagePath}/${storageName}`);
-      const result = await uploadBytes(storageRef, file.buffer);
+      const result = await uploadBytes(storageRef, buffer, metatdata);
       const fileUrl = await getDownloadURL(result.ref);
       return {
         fileReference: {
@@ -36,7 +46,7 @@ export class FirebaseService {
           filePath: result.ref.fullPath,
         },
       };
-    } catch {
+    } catch (error) {
       throw new ServiceUnavailableException(
         'Cant not upload file. Please try again later',
       );

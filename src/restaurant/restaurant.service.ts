@@ -45,6 +45,7 @@ import {
   SearchRestaurantByCategoryOutput,
   SearchRestaurantByNameInput,
   SearchRestaurantByNameOutput,
+  TopCategoriesOutput,
   TopRestaurantsOutput,
   UpdateDishCommentInput,
   UpdateDishCommentOutput,
@@ -107,6 +108,11 @@ export class RestaurantService {
       {
         relations: ['dishGroups'],
       },
+    );
+    console.log(
+      restaurant.dishGroups[0].dishes
+        .map((e) => e.dishOptions)[0]
+        .map((e) => e.options),
     );
     if (!restaurant) return customError('Restaurant', 'Restaurant not found');
     return {
@@ -616,6 +622,19 @@ export class RestaurantService {
     await this.dishRepo.save(dish);
     return {
       ok: true,
+    };
+  }
+
+  // category
+  async topRestaurantCategories(): Promise<TopCategoriesOutput> {
+    const categories = await this.categoryRepo.find({
+      order: {
+        totalRestaurants: 'DESC',
+      },
+    });
+    return {
+      ok: true,
+      restaurantCategories: categories,
     };
   }
 

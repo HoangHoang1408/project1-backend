@@ -1,3 +1,4 @@
+import { TopCategoriesOutput } from './category.dto';
 import {
   AddDishCommentInput,
   AddDishCommentOutput,
@@ -87,4 +88,5 @@ export {
   GetRestaurantInput,
   GetRestaurantOutput,
   TopRestaurantsOutput,
+  TopCategoriesOutput,
 };

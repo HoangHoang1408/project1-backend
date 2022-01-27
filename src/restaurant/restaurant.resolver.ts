@@ -41,6 +41,7 @@ import {
   SearchRestaurantByCategoryOutput,
   SearchRestaurantByNameInput,
   SearchRestaurantByNameOutput,
+  TopCategoriesOutput,
   TopRestaurantsOutput,
   UpdateDishCommentInput,
   UpdateDishCommentOutput,
@@ -225,6 +226,12 @@ export class RestaurantResolver {
     @Args('input') input: UpdateDishCommentInput,
   ): Promise<UpdateDishCommentOutput> {
     return this.restaurantService.updateDishComment(user, input);
+  }
+
+  // category
+  @Query(() => TopCategoriesOutput)
+  topRestaurantCategories() {
+    return this.restaurantService.topRestaurantCategories();
   }
 
   // subscription
