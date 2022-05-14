@@ -72,7 +72,6 @@ import { UserModule } from './user/user.module';
         'subscriptions-transport-ws': {
           path: '/graphql',
           onConnect(params) {
-            console.log(params);
             return { [ACCESS_JWT]: params[ACCESS_JWT] };
           },
         },

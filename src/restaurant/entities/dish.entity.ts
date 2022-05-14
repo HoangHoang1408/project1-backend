@@ -9,6 +9,7 @@ import {
 import { Image } from 'src/common/dto/objectType';
 import { CoreEntity } from 'src/common/entities/core.entity';
 import {
+  BeforeInsert,
   BeforeUpdate,
   Column,
   Entity,
@@ -28,6 +29,10 @@ export class Dish extends CoreEntity {
   @Field()
   @Column()
   name: string;
+
+  @Field()
+  @Column()
+  slug: string;
 
   @Field(() => Image, { nullable: true })
   @Column('json', { nullable: true })
@@ -61,7 +66,6 @@ export class Dish extends CoreEntity {
   @Field(() => Restaurant)
   @ManyToOne(() => Restaurant, {
     onDelete: 'CASCADE',
-    eager: true,
   })
   restaurant: Restaurant;
 
@@ -88,8 +92,18 @@ export class Dish extends CoreEntity {
   calculateRatings() {
     if (!(this.comments && this.comments.length > 0)) return;
     const ratings = this.comments.map((comment) => +comment.rating);
-    this.averageRating = Math.round(
-      ratings.reduce((acc, cur) => acc + cur, 0) / ratings.length,
-    );
+    this.averageRating =
+      Math.round(
+        (ratings.reduce((acc, cur) => acc + cur, 0) * 10) / ratings.length,
+      ) / 10;
+  }
+
+  @BeforeInsert()
+  @BeforeUpdate()
+  createSlug() {
+    this.slug = this.name
+      .split(' ')
+      .map((char) => char[0].toUpperCase() + char.slice(1))
+      .join('');
   }
 }

@@ -31,6 +31,7 @@ import {
   DeleteDishInput,
   DeleteDishOutput,
   DeleteRestaurantInput,
+  GetDishBySlugInput,
   GetDishInput,
   GetDishOutput,
   GetOrderInput,
@@ -108,11 +109,6 @@ export class RestaurantService {
       {
         relations: ['dishGroups'],
       },
-    );
-    console.log(
-      restaurant.dishGroups[0].dishes
-        .map((e) => e.dishOptions)[0]
-        .map((e) => e.options),
     );
     if (!restaurant) return customError('Restaurant', 'Restaurant not found');
     return {
@@ -312,6 +308,22 @@ export class RestaurantService {
       dish,
     };
   }
+  async getDishBySlug({ slug }: GetDishBySlugInput): Promise<GetDishOutput> {
+    const dish = await this.dishRepo.findOne(
+      {
+        slug,
+      },
+      {
+        relations: ['comments', 'comments.user'],
+      },
+    );
+    if (!dish) return customError('Dish', 'Dish not found');
+    return {
+      ok: true,
+      dish,
+    };
+  }
+
   async addDishToDishGroup(
     owner: User,
     input: AddDishToDishGroupInput,
@@ -403,10 +415,12 @@ export class RestaurantService {
           const dish = await this.dishRepo.findOne({ id: orderItem.dishId });
           if (!dish || dish.restaurantId !== +input.restaurantId)
             throw new Error(CREATE_ORDER_ITEM_FAIL);
-          return this.orderItemRepo.create({
-            dish,
-            ...orderItem,
-          });
+          return this.orderItemRepo.save(
+            this.orderItemRepo.create({
+              dish,
+              ...orderItem,
+            }),
+          );
         },
       );
       const newOrderItems = await Promise.all(newOrderItemsPromise);
@@ -424,7 +438,6 @@ export class RestaurantService {
           deliveryTime: new Date(input.deliveryTime),
         }),
       );
-
       // subscription publish
       const payload: NewPendingOrderPayload = {
         order,
@@ -438,6 +451,7 @@ export class RestaurantService {
         return customError('Dish Id', 'Invalid dish id or restaurant id');
       if (error.message === INVALID_INPUT_DISH_OPTION)
         return customError('Choosen Option', 'Invalid input dish option');
+      console.log(error);
       return customError('Order', 'Create order fail');
     }
   }
@@ -457,6 +471,7 @@ export class RestaurantService {
           order: {
             updatedAt: 'DESC',
           },
+          relations: ['restaurant', 'driver', 'orderItems', 'orderItems.dish'],
         });
         break;
       case UserRole.Driver:
@@ -498,7 +513,7 @@ export class RestaurantService {
   ): Promise<GetOrderOuput> {
     const order: Order = await this.orderRepo.findOne(
       { id: orderId },
-      { relations: ['restaurant'] },
+      { relations: ['restaurant', 'driver', 'orderItems', 'orderItems.dish'] },
     );
     if (!order) return customError('Order id', 'Order does not exist');
     if (!Order.canAccess(user, order))
@@ -535,11 +550,11 @@ export class RestaurantService {
       };
     } catch (error) {
       if (error.message === INVALID_ORDER_STATUS)
-        return customError('Order status', 'Invalid order status');
+        return customError('Order status', 'Invalid new order status');
       if (error.message === UPDATE_ORDER_STATUS_INVALID_USER_ID)
         return customError(
           'Order status',
-          'You are not allowed to update order status',
+          'You are not allowed to update current order status',
         );
       return customError('Error', error.message);
     }

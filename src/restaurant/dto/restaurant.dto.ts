@@ -22,7 +22,7 @@ export class TopRestaurantsOutput extends CoreOutput {
 
 @InputType()
 export class GetRestaurantInput {
-  @Field()
+  @Field(() => ID)
   restaurantId: number;
 }
 @ObjectType()
@@ -61,6 +61,7 @@ export class SearchRestaurantByCategoryOutput extends PaginationOutput {
 export class CreateRestaurantInput extends PickType(Restaurant, [
   'restaurantName',
   'address',
+  'coordinates',
   'backgroundImage',
   'closeTime',
   'openTime',

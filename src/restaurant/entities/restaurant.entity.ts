@@ -11,6 +11,7 @@ import {
   RelationId,
 } from 'typeorm';
 import { User } from './../../user/entities/user.entity';
+import { Coordinates } from './../constants/objectType';
 import { DishGroup } from './dishGroup.entity';
 import { Order } from './order.entity';
 import { RestaurantCategory } from './restaurantCategory.entity';
@@ -27,6 +28,12 @@ export class Restaurant extends CoreEntity {
   @Column()
   address: string;
 
+  @Field(() => Coordinates)
+  @Column('json')
+  coordinates: Coordinates;
+
+  @Field()
+  @Column()
   @Field(() => Image, { nullable: true })
   @Column('json', { nullable: true })
   backgroundImage: Image;

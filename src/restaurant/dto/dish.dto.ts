@@ -39,6 +39,12 @@ export class GetDishOutput extends CoreOutput {
 }
 
 @InputType()
+export class GetDishBySlugInput {
+  @Field()
+  slug: string;
+}
+
+@InputType()
 export class DeleteDishInput {
   @Field(() => ID)
   dishId: number;

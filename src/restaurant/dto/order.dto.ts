@@ -19,6 +19,8 @@ export class CreateOrderInput extends PickType(Order, [
   'deliveryAddress',
   'deliveryNote',
   'deliveryTime',
+  'addressCoordinates',
+  'method',
 ]) {
   @Field(() => [CreateOrderItemInput])
   @ValidateNested()
@@ -60,6 +62,7 @@ export class GetOrdersOuput extends CoreOutput {
   @Field(() => [Order], { nullable: true })
   orders?: Order[];
 }
+
 @InputType()
 export class GetOrderInput {
   @Field()

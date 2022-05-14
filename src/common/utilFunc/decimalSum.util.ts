@@ -1,4 +1,4 @@
-export function decimalSum(numOfDecimalPart: number, ...numbers: number[]) {
+export function decimalSum(numOfDecimalPart: number = 2, ...numbers: number[]) {
   const x = Math.pow(10, numOfDecimalPart);
-  return numbers.reduce((acc, cur) => (acc * x + cur * x) / x, 0);
+  return numbers.reduce((acc, cur) => Math.round(acc * x + cur * x) / x, 0);
 }

@@ -1,5 +1,10 @@
 import { Field, InputType, ObjectType } from '@nestjs/graphql';
-import { IsNumber, ValidateNested } from 'class-validator';
+import {
+  IsLatitude,
+  IsLongitude,
+  IsNumber,
+  ValidateNested,
+} from 'class-validator';
 
 @InputType('OptionInputType')
 @ObjectType()
@@ -31,4 +36,16 @@ export class ChoosenOption {
 
   @Field()
   optionName: string;
+}
+
+@InputType('CoordinateInputType')
+@ObjectType()
+export class Coordinates {
+  @Field()
+  @IsLatitude()
+  latitude: number;
+
+  @Field()
+  @IsLongitude()
+  longtitude: number;
 }

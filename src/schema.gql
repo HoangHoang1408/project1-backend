@@ -22,6 +22,11 @@ type ChoosenOption {
   optionName: String!
 }
 
+type Coordinates {
+  latitude: Float!
+  longtitude: Float!
+}
+
 type DishComment {
   id: ID!
   createdAt: DateTime!
@@ -54,6 +59,7 @@ type Restaurant {
   updatedAt: DateTime!
   restaurantName: String!
   address: String!
+  coordinates: Coordinates!
   backgroundImage: Image
   openTime: DateTime
   closeTime: DateTime
@@ -81,6 +87,7 @@ type Dish {
   createdAt: DateTime!
   updatedAt: DateTime!
   name: String!
+  slug: String!
   dishImage: Image
   price: Float!
   averageRating: Float
@@ -97,9 +104,12 @@ type Order {
   createdAt: DateTime!
   updatedAt: DateTime!
   deliveryAddress: String!
-  addressDetail: String!
-  deliveryNote: String!
+  orderCode: String!
+  addressCoordinates: Coordinates!
+  addressDetail: String
+  deliveryNote: String
   deliveryTime: DateTime!
+  method: PaymentMethods!
   totalPrice: Float!
   orderStatus: OrderStatus!
   restaurant: Restaurant
@@ -108,8 +118,13 @@ type Order {
   orderItems: [OrderItem!]!
 }
 
+enum PaymentMethods {
+  ByCash
+}
+
 enum OrderStatus {
   PendingOrder
+  CustomerCancelled
   RestaurantCooking
   RestaurantReject
   RestaurantCooked
@@ -117,6 +132,7 @@ enum OrderStatus {
   DriverDelivered
   DriverAbort
   CustomerReject
+  Completed
 }
 
 type OrderItem {
@@ -126,7 +142,8 @@ type OrderItem {
   dish: Dish!
   extraRequirement: String!
   quantity: Float!
-  choosenOptions: [ChoosenOption!]!
+  choosenOptions: [ChoosenOption!]
+  totalOrderItemPrice: Float!
   order: Order!
 }
 
@@ -331,6 +348,11 @@ input ChoosenOptionInputType {
   optionName: String!
 }
 
+input CoordinateInputType {
+  latitude: Float!
+  longtitude: Float!
+}
+
 type Query {
   me: MeOutPut!
   topRestaurants: TopRestaurantsOutput!
@@ -338,11 +360,14 @@ type Query {
   searchRestaurantByCategory(input: SearchRestaurantByCategoryInput!): SearchRestaurantByCategoryOutput!
   searchRestaurantByName(input: SearchRestaurantByNameInput!): SearchRestaurantByNameOutput!
   getDishDetail(input: GetDishInput!): GetDishOutput!
+  getDishDetailBySlug(input: GetDishBySlugInput!): GetDishOutput!
+  getOrders(input: GetOrdersInput!): GetOrdersOuput!
+  getOrder(input: GetOrderInput!): GetOrderOuput!
   topRestaurantCategories: TopCategoriesOutput!
 }
 
 input GetRestaurantInput {
-  restaurantId: Float!
+  restaurantId: ID!
 }
 
 input SearchRestaurantByCategoryInput {
@@ -361,6 +386,18 @@ input GetDishInput {
   dishId: ID!
 }
 
+input GetDishBySlugInput {
+  slug: String!
+}
+
+input GetOrdersInput {
+  orderStatus: OrderStatus
+}
+
+input GetOrderInput {
+  orderId: Float!
+}
+
 type Mutation {
   login(input: LoginInput!): LoginOutput!
   signup(input: SignUpInput!): SignUpOutput!
@@ -377,8 +414,6 @@ type Mutation {
   deleteDish(input: DeleteDishInput!): DeleteDishOutput!
   updateDish(input: UpdateDishInput!): UpdateDishOutput!
   createOrder(input: CreateOrderInput!): CreateOrderOutput!
-  getOrders(input: GetOrdersInput!): GetOrdersOuput!
-  getOrder(input: GetOrderInput!): GetOrderOuput!
   updateOrderStatus(input: UpdateOrderStatusInput!): UpdateOrderStatusOutput!
   registerDriver(input: RegisterDriverInput!): UpdateOrderStatusOutput!
   addDishComment(input: AddDishCommentInput!): AddDishCommentOutput!
@@ -421,6 +456,7 @@ input UpdateUserInput {
 input CreateRestaurantInput {
   restaurantName: String!
   address: String!
+  coordinates: CoordinateInputType!
   backgroundImage: ImageInputType
   openTime: DateTime
   closeTime: DateTime
@@ -430,6 +466,7 @@ input CreateRestaurantInput {
 input UpdateRestaurantInput {
   restaurantName: String
   address: String
+  coordinates: CoordinateInputType
   backgroundImage: ImageInputType
   openTime: DateTime
   closeTime: DateTime
@@ -476,9 +513,11 @@ input UpdateDishInput {
 
 input CreateOrderInput {
   deliveryAddress: String!
-  addressDetail: String!
-  deliveryNote: String!
+  addressCoordinates: CoordinateInputType!
+  addressDetail: String
+  deliveryNote: String
   deliveryTime: DateTime!
+  method: PaymentMethods!
   orderItemsInput: [CreateOrderItemInput!]!
   restaurantId: ID!
 }
@@ -486,16 +525,8 @@ input CreateOrderInput {
 input CreateOrderItemInput {
   extraRequirement: String!
   quantity: Float!
-  choosenOptions: [ChoosenOptionInputType!]!
+  choosenOptions: [ChoosenOptionInputType!]
   dishId: ID!
-}
-
-input GetOrdersInput {
-  orderStatus: OrderStatus
-}
-
-input GetOrderInput {
-  orderId: Float!
 }
 
 input UpdateOrderStatusInput {

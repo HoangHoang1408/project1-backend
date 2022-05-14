@@ -28,6 +28,7 @@ import {
   DeleteDishOutput,
   DeleteRestaurantInput,
   DeleteRestaurantOutput,
+  GetDishBySlugInput,
   GetDishInput,
   GetDishOutput,
   GetOrderInput,
@@ -138,6 +139,13 @@ export class RestaurantResolver {
     return this.restaurantService.getDish(input);
   }
 
+  @Query(() => GetDishOutput)
+  getDishDetailBySlug(
+    @Args('input') input: GetDishBySlugInput,
+  ): Promise<GetDishOutput> {
+    return this.restaurantService.getDishBySlug(input);
+  }
+
   @Roles(['Owner'])
   @Mutation(() => AddDishToDishGroupOutput)
   addDishToDishGroup(
@@ -173,8 +181,9 @@ export class RestaurantResolver {
   ): Promise<CreateOrderOutput> {
     return this.restaurantService.createOrder(customer, input);
   }
+
   @Roles(['Any'])
-  @Mutation(() => GetOrdersOuput)
+  @Query(() => GetOrdersOuput)
   getOrders(
     @CurrentUser() customer: User,
     @Args('input') input: GetOrdersInput,
@@ -183,7 +192,7 @@ export class RestaurantResolver {
   }
 
   @Roles(['Any'])
-  @Mutation(() => GetOrderOuput)
+  @Query(() => GetOrderOuput)
   getOrder(
     @CurrentUser() customer: User,
     @Args('input') input: GetOrderInput,

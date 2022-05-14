@@ -6,6 +6,7 @@ import {
   AddDishToDishGroupOutput,
   DeleteDishInput,
   DeleteDishOutput,
+  GetDishBySlugInput,
   GetDishInput,
   GetDishOutput,
   UpdateDishCommentInput,
@@ -89,4 +90,5 @@ export {
   GetRestaurantOutput,
   TopRestaurantsOutput,
   TopCategoriesOutput,
+  GetDishBySlugInput,
 };

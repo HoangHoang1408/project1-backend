@@ -5,6 +5,7 @@ import {
   registerEnumType,
 } from '@nestjs/graphql';
 import { IsInt, IsNumber, IsString, Min } from 'class-validator';
+import { createHash } from 'crypto';
 import { CoreEntity } from 'src/common/entities/core.entity';
 import { decimalSum } from 'src/common/utilFunc';
 import { User, UserRole } from 'src/user/entities/user.entity';
@@ -21,12 +22,13 @@ import {
   INVALID_ORDER_STATUS,
   UPDATE_ORDER_STATUS_INVALID_USER_ID,
 } from './../constants/errorType';
-import { ChoosenOption } from './../constants/objectType';
+import { ChoosenOption, Coordinates } from './../constants/objectType';
 import { Dish } from './dish.entity';
 import { Restaurant } from './restaurant.entity';
 
 export enum OrderStatus {
   PendingOrder = 'PendingOrder',
+  CustomerCancelled = 'CustomerCancelled',
   RestaurantCooking = 'RestaurantCooking',
   RestaurantReject = 'RestaurantReject',
   RestaurantCooked = 'RestaurantCooked',
@@ -34,9 +36,18 @@ export enum OrderStatus {
   DriverDelivered = 'DriverDelivered',
   DriverAbort = 'DriverAbort',
   CustomerReject = 'CustomerReject',
+  Completed = 'Completed',
 }
+
+enum PaymentMethods {
+  ByCash = 'ByCash',
+}
+
 registerEnumType(OrderStatus, {
   name: 'OrderStatus',
+});
+registerEnumType(PaymentMethods, {
+  name: 'PaymentMethods',
 });
 
 @InputType('OrderInputType', { isAbstract: true })
@@ -49,15 +60,29 @@ export class Order extends CoreEntity {
 
   @Field()
   @Column()
-  addressDetail: string;
+  orderCode: string;
 
-  @Field()
-  @Column()
-  deliveryNote: string;
+  @Field(() => Coordinates)
+  @Column('json')
+  addressCoordinates: Coordinates;
 
-  @Field()
-  @Column()
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  addressDetail?: string;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  deliveryNote?: string;
+
+  @Field(() => Date)
+  @Column('timestamp without time zone')
   deliveryTime: Date;
+
+  @Field(() => PaymentMethods)
+  @Column('enum', {
+    enum: PaymentMethods,
+  })
+  method: PaymentMethods;
 
   @Field()
   @Column('numeric')
@@ -100,7 +125,7 @@ export class Order extends CoreEntity {
 
   @Field(() => [OrderItem])
   @OneToMany(() => OrderItem, (orderItem) => orderItem.order, {
-    cascade: true,
+    // cascade: true,
   })
   orderItems: OrderItem[];
 
@@ -111,7 +136,8 @@ export class Order extends CoreEntity {
       if (!acceptStatus.includes(newStatus))
         throw new Error(INVALID_ORDER_STATUS);
       this.orderStatus = newStatus;
-      return (ok = true);
+      ok = true;
+      return;
     };
     const oldStatus = this.orderStatus;
     if (user.role === UserRole.Owner) {
@@ -136,7 +162,14 @@ export class Order extends CoreEntity {
           OrderStatus.CustomerReject,
         );
     }
-    if (user.role === UserRole.Customer || user.role === UserRole.Admin)
+    if (user.role === UserRole.Customer) {
+      if (user.id !== this.customerId)
+        throw new Error(UPDATE_ORDER_STATUS_INVALID_USER_ID);
+      if (oldStatus === OrderStatus.PendingOrder) {
+        checkNewStatusAndSet(OrderStatus.CustomerCancelled);
+      }
+    }
+    if (user.role === UserRole.Admin)
       throw new Error(UPDATE_ORDER_STATUS_INVALID_USER_ID);
     if (ok) return;
     throw new Error(INVALID_ORDER_STATUS);
@@ -151,23 +184,18 @@ export class Order extends CoreEntity {
   }
   @BeforeInsert()
   calculateTotalPrice() {
-    let totalPrice = 0;
-    this.orderItems.forEach((orderItem) => {
-      totalPrice = decimalSum(totalPrice, orderItem.dish.price);
-      const dishOptions = orderItem.dish.dishOptions;
-      orderItem.choosenOptions.forEach((choosenOption) => {
-        const dishOption = dishOptions.find(
-          (option) => option.typeName === choosenOption.typeName,
-        );
-        if (!dishOption) throw new Error(INVALID_INPUT_DISH_OPTION);
-        const option = dishOption.options.find((option) => {
-          return option.optionName === choosenOption.optionName;
-        });
-        if (!option) throw new Error(INVALID_INPUT_DISH_OPTION);
-        totalPrice = decimalSum(2, totalPrice, +option.extraPrice);
-      });
-    });
-    this.totalPrice = totalPrice;
+    const total = this.orderItems
+      .map((item) => item.totalOrderItemPrice)
+      .reduce((acc, totalOrderItemPrice) => {
+        return decimalSum(2, acc, totalOrderItemPrice);
+      }, 0);
+    this.totalPrice = decimalSum(2, total, 1.2);
+  }
+  @BeforeInsert()
+  generateOrderCode() {
+    this.orderCode = createHash('md4')
+      .update(String(Date.now()) + this.customer.id)
+      .digest('hex');
   }
 }
 
@@ -196,13 +224,41 @@ export class OrderItem extends CoreEntity {
   @Min(0)
   quantity: number;
 
-  @Field(() => [ChoosenOption])
-  @Column('json')
-  choosenOptions: ChoosenOption[];
+  @Field(() => [ChoosenOption], {
+    nullable: true,
+  })
+  @Column('json', {
+    nullable: true,
+  })
+  choosenOptions?: ChoosenOption[];
+
+  @Field()
+  @Column('numeric')
+  @IsNumber({ maxDecimalPlaces: 2 })
+  totalOrderItemPrice: number;
 
   @Field(() => Order)
   @ManyToOne(() => Order, (order) => order.orderItems, {
     onDelete: 'CASCADE',
   })
   order: Order;
+
+  @BeforeInsert()
+  calculateTotalItemPrice() {
+    let orderItemPrice = decimalSum(2, 0, this.dish.price);
+    const dishOptions = this.dish.dishOptions;
+    if (this.choosenOptions && this.choosenOptions.length > 0)
+      this.choosenOptions.forEach((choosenOption) => {
+        const dishOption = dishOptions.find(
+          (option) => option.typeName === choosenOption.typeName,
+        );
+        if (!dishOption) throw new Error(INVALID_INPUT_DISH_OPTION);
+        const option = dishOption.options.find((option) => {
+          return option.optionName === choosenOption.optionName;
+        });
+        if (!option) throw new Error(INVALID_INPUT_DISH_OPTION);
+        orderItemPrice = decimalSum(2, orderItemPrice, +option.extraPrice);
+      });
+    this.totalOrderItemPrice = (orderItemPrice * 100 * +this.quantity) / 100;
+  }
 }
